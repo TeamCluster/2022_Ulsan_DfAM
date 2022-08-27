@@ -6,6 +6,7 @@
 #define BUZZER_CHANNEL 0
 #define LED_CHANNEL 1  
 #define LIGHT_MAX 4095
+#define LIGHT_STD 2000
 
 #define FRAME_TIME 33
 #define RING_TIME 1000
@@ -22,9 +23,10 @@
 // 필요 시 하단의 '#define' 앞에 '//'를 넣고 빼서
 // 매크로를 활성화/비활성화시킬 수 있음.
 #define LEDC_STYLE
-#define CDS_TEST
-#define BUZZER_TEST
-#define LED_TEST
+// #define CDS_TEST
+// #define BUZZER_TEST
+// #define LED_TEST
+// #define BLUETOOTH_TEST
 
 int cds[3] = {0, };
 BluetoothSerial SerialBT;
@@ -75,7 +77,14 @@ void loop() {
     led_test();
 #endif
 
+#ifdef BLUETOOTH_TEST
     bluetooth_read();
+#endif
+
+    if (cds[1] < LIGHT_STD || cds[2] < LIGHT_STD) {
+        ring();
+    }
+    
     delay(FRAME_TIME);
 }
 
@@ -120,9 +129,11 @@ void bluetooth_read() {
 }
 
 void ring() {
-    led_test();
-    buzzer_test();
+    ledcWrite(LED_CHANNEL, LEDC_WRITE_VALUE);
+    ledcWriteTone(BUZZER_CHANNEL, 880);
 
     delay(1000);
+    
+    ledcWrite(LED_CHANNEL, 0);
     ledcWriteTone(BUZZER_CHANNEL, 0);
 }
