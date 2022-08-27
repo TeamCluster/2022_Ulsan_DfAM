@@ -81,7 +81,7 @@ void loop() {
     bluetooth_read();
 #endif
 
-    if (cds[1] < LIGHT_STD || cds[2] < LIGHT_STD) {
+    if ((!cds[1] && cds[1] < LIGHT_STD) || (!cds[2] && cds[2] < LIGHT_STD)) {
         ring();
     }
     
