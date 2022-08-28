@@ -41,10 +41,16 @@ void ring();
 
 
 void setup() {
+    delay(5000);
     Serial.begin(115200);
-    SerialBT.begin("1"); //Bluetooth device 이름
-    Serial.println("The device started, now you can pair it with bluetooth!");    
 
+    if (!SerialBT.begin("ESP32_USB_1")) {
+        Serial.println("An error occurred initializing Bluetooth");
+    } 
+    else {
+        Serial.println("Bluetooth initialized");
+    }
+    
 #ifdef LEDC_STYLE
     ledcSetup(BUZZER_CHANNEL, 5000, 12);
     ledcSetup(LED_CHANNEL, 8000, 8);
@@ -136,7 +142,13 @@ void bluetooth_read() {
         SerialBT.write(Serial.read());
     }
     if (SerialBT.available()) {
+        char input = SerialBT.read();
+        
         Serial.write(SerialBT.read());
+
+        if (input == 'a') {
+            ring();
+        }
     }
 }
 
@@ -149,3 +161,55 @@ void ring() {
     ledcWrite(LED_CHANNEL, OFF);
     ledcWriteTone(BUZZER_CHANNEL, OFF);
 }
+
+/*
+ * Easter Egg
+void plane() {
+    ledcWrite(LED_CHANNEL, LEDC_WRITE_VALUE);
+
+    ledcWriteTone(BUZZER_CHANNEL, 1318.5);
+    delay(600);
+
+    ledcWriteTone(BUZZER_CHANNEL, 1174.7);
+    delay(200);
+
+    ledcWriteTone(BUZZER_CHANNEL, 1046.5);
+    delay(400);
+
+    ledcWriteTone(BUZZER_CHANNEL, 1174.7);
+    delay(400);
+
+    ledcWriteTone(BUZZER_CHANNEL, 1318.5);
+    delay(400);
+
+    ledcWriteTone(BUZZER_CHANNEL, 1318.5);
+    delay(400);
+
+    ledcWriteTone(BUZZER_CHANNEL, 1318.5);
+    delay(800);
+
+    ledcWriteTone(BUZZER_CHANNEL, 1174.7);
+    delay(400);
+
+    ledcWriteTone(BUZZER_CHANNEL, 1174.7);
+    delay(400);
+
+    ledcWriteTone(BUZZER_CHANNEL, 1174.7);
+    delay(800);
+
+    ledcWriteTone(BUZZER_CHANNEL, 1318.5);
+    delay(400);
+
+    ledcWriteTone(BUZZER_CHANNEL, 1568);
+    delay(400);
+
+    ledcWriteTone(BUZZER_CHANNEL, 1568);
+    delay(1200);
+
+    ledcWriteTone(BUZZER_CHANNEL, OFF);
+    delay(3000);
+    
+    ledcWrite(LED_CHANNEL, OFF);
+    ledcWriteTone(BUZZER_CHANNEL, OFF);
+}
+*/
