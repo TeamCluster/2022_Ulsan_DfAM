@@ -6,13 +6,14 @@
 #define BUZZER_CHANNEL 0
 #define LED_CHANNEL 1  
 #define LIGHT_MAX 4095
-#define LIGHT_STD 2000
+#define LIGHT_STD 2400
 
 #define FRAME_TIME 33
 #define RING_TIME 1000
 
 #define LEDC_WRITE_VALUE 255
-#define TONE_A4 440
+#define RING_TONE 880
+#define OFF 0
 
 #include "BluetoothSerial.h"
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
@@ -26,7 +27,7 @@
 // #define CDS_TEST
 // #define BUZZER_TEST
 // #define LED_TEST
-// #define BLUETOOTH_TEST
+#define BLUETOOTH_TEST
 
 int cds[3] = {0, };
 BluetoothSerial SerialBT;
@@ -62,8 +63,8 @@ void loop() {
     // 값 범위는 0~4095로 추정됨
     cds[1] = analogRead(CDS_1_PIN);
     cds[2] = analogRead(CDS_2_PIN);
-    Serial.println("============");
-    Serial.println((String) "CDS_1: " + cds[1] + ", CDS_2: " + cds[2]);
+    // Serial.println("============");
+    // Serial.println((String) "CDS_1: " + cds[1] + ", CDS_2: " + cds[2]);
 
 #ifdef CDS_TEST
     cds_test();
@@ -81,8 +82,15 @@ void loop() {
     bluetooth_read();
 #endif
 
-    if ((!cds[1] && cds[1] < LIGHT_STD) || (!cds[2] && cds[2] < LIGHT_STD)) {
+    if ((cds[1] != 0 && cds[1] < LIGHT_STD) || (cds[2] != 0 && cds[2] < LIGHT_STD)) {
         ring();
+    }
+
+    if (SerialBT.available()) {
+        Serial.println("works");
+    }
+    else {
+        Serial.println("no");
     }
     
     delay(FRAME_TIME);
@@ -100,11 +108,11 @@ void cds_test() {
 void buzzer_test() {
 #ifdef LEDC_STYLE
     // 부저에 A4음 작성
-    ledcWriteTone(BUZZER_CHANNEL, TONE_A4);
-    Serial.println("[BUZZER TEST] LEDC - Sending Tone A4...");
+    ledcWriteTone(BUZZER_CHANNEL, RING_TONE);
+    Serial.println("[BUZZER TEST] LEDC - Sending Tone...");
 #else
     digitalWrite(BUZZER_PIN, HIGH);
-    Serial.println("[BUZZER TEST] DIGITAL - Sending Tone A4...");
+    Serial.println("[BUZZER TEST] DIGITAL - Sending Tone...");
 #endif
 }
 
@@ -130,10 +138,10 @@ void bluetooth_read() {
 
 void ring() {
     ledcWrite(LED_CHANNEL, LEDC_WRITE_VALUE);
-    ledcWriteTone(BUZZER_CHANNEL, 880);
+    ledcWriteTone(BUZZER_CHANNEL, RING_TONE);
 
-    delay(1000);
+    delay(RING_TIME);
     
-    ledcWrite(LED_CHANNEL, 0);
-    ledcWriteTone(BUZZER_CHANNEL, 0);
+    ledcWrite(LED_CHANNEL, OFF);
+    ledcWriteTone(BUZZER_CHANNEL, OFF);
 }
