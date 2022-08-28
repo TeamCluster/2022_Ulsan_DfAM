@@ -30,6 +30,7 @@
 #define BLUETOOTH_TEST
 
 int cds[3] = {0, };
+int serialBT_check = 0;
 BluetoothSerial SerialBT;
 
 void cds_test();
@@ -86,11 +87,14 @@ void loop() {
         ring();
     }
 
-    if (SerialBT.available()) {
-        Serial.println("works");
-    }
-    else {
-        Serial.println("no");
+    if (!serialBT_check) {
+        if (SerialBT.available()) {
+            Serial.println("[BT] Working.");
+            serialBT_check = 1;
+        }
+        else {
+            Serial.println("[BT] Not working.");
+        }
     }
     
     delay(FRAME_TIME);
