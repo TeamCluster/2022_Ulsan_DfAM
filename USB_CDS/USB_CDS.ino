@@ -75,10 +75,8 @@ void setup() {
 void loop() {
     if (millis() - setup_finished < 5000) {
         add_data();
-        delay(FRAME_TIME);
-        continue;
     }
-
+else {
     // CDS 값 읽어서 출력하기
     // 값 범위는 0~4095로 추정됨
     cds[1] = analogRead(CDS_1_PIN);
@@ -115,7 +113,7 @@ void loop() {
             // Serial.println("[BT] Not working.");
         }
     }
-    
+    }
     delay(FRAME_TIME);
 }
 
