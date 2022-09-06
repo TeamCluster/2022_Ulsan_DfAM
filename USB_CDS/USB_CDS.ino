@@ -30,7 +30,11 @@
 #define BLUETOOTH_TEST
 
 int cds[3] = {0, };
+int total[3] = {0, };
+int std_value[3] = {0, };
+int cnt = 0;
 int serialBT_check = 0;
+unsigned long setup_finished;
 BluetoothSerial SerialBT;
 
 void cds_test();
@@ -38,6 +42,7 @@ void buzzer_test();
 void led_test();
 void bluetooth_read();
 void ring();
+void add_data();
 
 
 void setup() {
@@ -63,9 +68,17 @@ void setup() {
     pinMode(LED_1_PIN, OUTPUT);
     pinMode(LED_2_PIN, OUTPUT);
 #endif
+
+    setup_finished = millis();
 }
 
 void loop() {
+    if (millis() - setup_finished < 5000) {
+        add_data();
+        delay(FRAME_TIME);
+        continue;
+    }
+
     // CDS 값 읽어서 출력하기
     // 값 범위는 0~4095로 추정됨
     cds[1] = analogRead(CDS_1_PIN);
@@ -89,21 +102,29 @@ void loop() {
     bluetooth_read();
 #endif
 
-    if ((cds[1] != 0 && cds[1] < LIGHT_STD) || (cds[2] != 0 && cds[2] < LIGHT_STD)) {
+    if ((cds[1] != 0 && cds[1] < std_value[1] / 2) || (cds[2] != 0 && cds[2] < std_value[2] / 2)) {
         ring();
     }
 
     if (!serialBT_check) {
         if (SerialBT.available()) {
-            Serial.println("[BT] Working.");
+            // Serial.println("[BT] Working.");
             serialBT_check = 1;
         }
         else {
-            Serial.println("[BT] Not working.");
+            // Serial.println("[BT] Not working.");
         }
     }
     
     delay(FRAME_TIME);
+}
+
+void add_data() {
+    cnt++;
+    total[1] += analogRead(CDS_1_PIN);
+    total[2] += analogRead(CDS_2_PIN);
+    std_value[1] = total[1] / cnt;
+    std_value[2] = total[2] / cnt;
 }
 
 void cds_test() {
