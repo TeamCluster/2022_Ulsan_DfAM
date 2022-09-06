@@ -71,7 +71,7 @@ void loop() {
     cds[1] = analogRead(CDS_1_PIN);
     cds[2] = analogRead(CDS_2_PIN);
     // Serial.println("============");
-    // Serial.println((String) "CDS_1: " + cds[1] + ", CDS_2: " + cds[2]);
+    Serial.println((String) "CDS_1: " + cds[1] + ", CDS_2: " + cds[2]);
 
 #ifdef CDS_TEST
     cds_test();
