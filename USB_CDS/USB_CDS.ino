@@ -10,9 +10,12 @@
 
 #define FRAME_TIME 33
 #define RING_TIME 1000
+#define OK_TIME 125
 
 #define LEDC_WRITE_VALUE 255
 #define RING_TONE 880
+#define OK_1_TONE 1175 // D5
+#define OK_2_TONE 932 // A#5
 #define OFF 0
 
 #include "BluetoothSerial.h"
@@ -33,6 +36,7 @@ int cds[3] = {0, };
 int total[3] = {0, };
 int std_value[3] = {0, };
 int cnt = 0;
+int ready = 0;
 int serialBT_check = 0;
 unsigned long setup_finished;
 BluetoothSerial SerialBT;
@@ -42,6 +46,7 @@ void buzzer_test();
 void led_test();
 void bluetooth_read();
 void ring();
+void ready_ring();
 void add_data();
 
 
@@ -76,44 +81,57 @@ void loop() {
     if (millis() - setup_finished < 5000) {
         add_data();
     }
-else {
-    // CDS 값 읽어서 출력하기
-    // 값 범위는 0~4095로 추정됨
-    cds[1] = analogRead(CDS_1_PIN);
-    cds[2] = analogRead(CDS_2_PIN);
-    // Serial.println("============");
-    Serial.println((String) "CDS_1: " + cds[1] + ", CDS_2: " + cds[2]);
+    else {
+        if (!ready) {
+            Serial.println((String) "[STD Value] CDS_1: " + std_value[1] + ", CDS_2: " + std_value[2]);
+            Serial.println("If value is under 75 percent of STD Value, it rings.");
+            Serial.println("");
+            Serial.println("");
+
+            ready_ring();
+            ready = 1;
+        }
+
+        // CDS 값 읽어서 출력하기
+        // 값 범위는 0~4095로 추정됨
+        cds[1] = analogRead(CDS_1_PIN);
+        cds[2] = analogRead(CDS_2_PIN);
+
+        // Serial.println("============");
+        Serial.println((String) "CDS_1: " + cds[1] + ", CDS_2: " + cds[2]);
 
 #ifdef CDS_TEST
-    cds_test();
+        cds_test();
 #endif
 
 #ifdef BUZZER_TEST
-    buzzer_test();
+        buzzer_test();
 #endif
 
 #ifdef LED_TEST
-    led_test();
+        led_test();
 #endif
 
 #ifdef BLUETOOTH_TEST
-    bluetooth_read();
+        bluetooth_read();
 #endif
 
-    if ((cds[1] != 0 && cds[1] < std_value[1] / 2) || (cds[2] != 0 && cds[2] < std_value[2] / 2)) {
-        ring();
-    }
+        // 울림 기준치: < 평시의 75% 센서값 (*3/4)
+        if ((cds[1] != 0 && cds[1] < std_value[1] * 3 / 4) || (cds[2] != 0 && cds[2] < std_value[2] * 3 / 4)) {
+            ring();
+        }
 
-    if (!serialBT_check) {
-        if (SerialBT.available()) {
-            // Serial.println("[BT] Working.");
-            serialBT_check = 1;
-        }
-        else {
-            // Serial.println("[BT] Not working.");
+        if (!serialBT_check) {
+            if (SerialBT.available()) {
+                // Serial.println("[BT] Working.");
+                serialBT_check = 1;
+            }
+            else {
+                // Serial.println("[BT] Not working.");
+            }
         }
     }
-    }
+    
     delay(FRAME_TIME);
 }
 
@@ -178,6 +196,16 @@ void ring() {
     delay(RING_TIME);
     
     ledcWrite(LED_CHANNEL, OFF);
+    ledcWriteTone(BUZZER_CHANNEL, OFF);
+}
+
+void ready_ring() {
+    ledcWriteTone(BUZZER_CHANNEL, OK_1_TONE);
+    delay(OK_TIME);
+
+    ledcWriteTone(BUZZER_CHANNEL, OK_2_TONE);
+    delay(OK_TIME);
+
     ledcWriteTone(BUZZER_CHANNEL, OFF);
 }
 
