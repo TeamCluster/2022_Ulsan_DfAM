@@ -1,4 +1,6 @@
 .vscode/c_cpp_properties.json
 .vscode/arduino.json
 .vscode
+.fleet
 docs
+울산대회.pdf
